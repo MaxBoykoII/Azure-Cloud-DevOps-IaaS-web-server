@@ -10,8 +10,8 @@ data "azurerm_subscription" "current" {
 
 # Create a resource group
 resource "azurerm_resource_group" "iaas-web-server" {
-  name     = "iass-web-server-resources"
-  location = "West US"
+  name     = "${var.prefix}-resources"
+  location = var.location
 }
 
 # Create a policy definition to enforce tagging resources
