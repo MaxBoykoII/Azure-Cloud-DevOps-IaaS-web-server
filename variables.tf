@@ -7,3 +7,7 @@ variable "location" {
     description = "The location of the resources in this project"
     default = "West US"
 }
+
+variable "source_image_id" {
+    description = "The source image id of the packer template"
+}
