@@ -86,6 +86,18 @@ resource "azurerm_lb_backend_address_pool" "main" {
   name                = "${var.prefix}-backend-address-pool"
 }
 
+# Create a load balancer rule
+resource "azurerm_lb_rule" "main" {
+  resource_group_name            = azurerm_resource_group.main.name
+  name                           = "${var.prefix}-load-balancer-rule"
+  loadbalancer_id                = azurerm_lb.main.id
+  protocol                       = "Tcp"
+  frontend_port                  = 80
+  backend_port                   = 80
+  frontend_ip_configuration_name = azurerm_lb.main.frontend_ip_configuration[0].name
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.main.id
+}
+
 # Create network interfaces
 resource "azurerm_network_interface" "main" {
   count               = var.vm_count
@@ -94,10 +106,18 @@ resource "azurerm_network_interface" "main" {
   resource_group_name = azurerm_resource_group.main.name
 
   ip_configuration {
-    name                          = "iaas-server-configuration"
+    name                          = "${var.prefix}-nic-ip-configuration-${var.vm_count}"
     subnet_id                     = azurerm_subnet.internal.id
     private_ip_address_allocation = "Dynamic"
   }
+}
+
+# Create backend address pool associations
+resource "azurerm_network_interface_backend_address_pool_association" "pool_associations" {
+  count                   = var.vm_count
+  network_interface_id    = element(azurerm_network_interface.main.*.id, count.index)
+  ip_configuration_name   = "${var.prefix}-nic-ip-configuration-${var.vm_count}"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.main.id
 }
 
 # Create an availability set
