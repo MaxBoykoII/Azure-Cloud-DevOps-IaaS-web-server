@@ -98,6 +98,53 @@ resource "azurerm_lb_rule" "main" {
   backend_address_pool_id        = azurerm_lb_backend_address_pool.main.id
 }
 
+# Create a network security group
+resource "azurerm_network_security_group" "main" {
+  name                = "${var.prefix}-network-security-group"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+# Allow inbound traffic to the loadbalancer
+resource "azurerm_network_security_rule" "inbound" {
+  name                        = "${var.prefix}-loadbalancer-inbound"
+  priority                    = 110
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "80"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = azurerm_resource_group.main.name
+  network_security_group_name = azurerm_network_security_group.main.name
+}
+
+# Allow outbound traffic to the loadbalancer
+resource "azurerm_network_security_rule" "outbound" {
+  name                        = "${var.prefix}-loadbalancer-outbound"
+  priority                    = 100
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "80"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = azurerm_resource_group.main.name
+  network_security_group_name = azurerm_network_security_group.main.name
+}
+
+# Create an association between the network security group and the subnet
+resource "azurerm_subnet_network_security_group_association" "main" {
+  subnet_id                 = azurerm_subnet.internal.id
+  network_security_group_id = azurerm_network_security_group.main.id
+}
+
 # Create network interfaces
 resource "azurerm_network_interface" "main" {
   count               = var.vm_count
