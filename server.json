@@ -29,8 +29,24 @@
 	"provisioners": [
 		{
 			"inline": [
-				"echo 'Hello, World!' > index.html",
-				"nohup busybox httpd -f -p 80 &"
+				"echo '#!/bin/bash' > startserver.sh",
+				"echo 'echo \"Great Bulls of America\"> index.html'>> startserver.sh",
+				"echo 'echo \"the bulls are going live!\"' >> startserver.sh",
+				"echo 'nohup busybox httpd -f -p 80' >> startserver.sh",
+				"cat startserver.sh",
+				"sudo cp startserver.sh /usr/local/sbin/startserver.sh",
+				"sudo chmod +x /usr/local/sbin/startserver.sh",
+				"echo '[Unit]' > startserver.service",
+				"echo 'Description=Server' >> startserver.service",
+				"echo '' >> startserver.service",
+				"echo '[Service]' >> startserver.service",
+				"echo 'ExecStart=/usr/local/sbin/startserver.sh' >> startserver.service",
+				"echo '' >> startserver.service",
+				"echo '[Install]' >> startserver.service",
+				"echo 'WantedBy=multi-user.target' >> startserver.service",
+				"cat startserver.service",
+				"sudo cp startserver.service /etc/systemd/system/startserver.service",
+				"sudo systemctl enable startserver.service"
 			],
 			"inline_shebang": "/bin/sh -x",
 			"type": "shell"
