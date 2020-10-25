@@ -16,3 +16,13 @@ variable "vm_count" {
     description = "The number of VMs to create"
     default = 2
 }
+
+variable "vm_username" {
+    description = "Username for VMs"
+    default ="adminuser"
+}
+
+variable "vm_password" {
+    description = "Password for VMs"
+    default = "P@ssw0rd1234!"
+}

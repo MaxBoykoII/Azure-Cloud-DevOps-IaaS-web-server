@@ -14,35 +14,6 @@ resource "azurerm_resource_group" "main" {
   location = var.location
 }
 
-# Create a policy definition to enforce tagging resources
-resource "azurerm_policy_definition" "tagging_policy" {
-  name         = "deny-indexed-resources-without-tags"
-  policy_type  = "Custom"
-  mode         = "Indexed"
-  display_name = "Deny Creation of Indexed Resources without Tags"
-  description  = "Ensures that all indexed resources are tagged. This will help us with organization and tracking, and make it easier to log when things go wrong."
-  policy_rule  = <<POLICY_RULE
-  {
-      "if": {
-          "field": "tags",
-          "exists": "false"
-      },
-      "then": {
-          "effect": "deny"
-      }
-  }
-  POLICY_RULE
-}
-
-# Create a policy assignment for the tagging policy
-resource "azurerm_policy_assignment" "tagging_policy_assignment" {
-  name                 = "tagging-policy"
-  scope                = data.azurerm_subscription.current.id
-  policy_definition_id = azurerm_policy_definition.tagging_policy.id
-  description          = "Assignment of the tagging policy"
-  display_name         = "tagging-policy"
-}
-
 # Create a virtual network
 resource "azurerm_virtual_network" "main" {
   name                = "${var.prefix}-network"
@@ -124,21 +95,6 @@ resource "azurerm_network_security_rule" "inbound" {
   network_security_group_name = azurerm_network_security_group.main.name
 }
 
-# Allow inbound traffic to the loadbalancer
-resource "azurerm_network_security_rule" "inbound2" {
-  name                        = "${var.prefix}-loadbalancer-inbound-2"
-  priority                    = 115
-  direction                   = "Inbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "22"
-  source_address_prefix       = "*"
-  destination_address_prefix  = "*"
-  resource_group_name         = azurerm_resource_group.main.name
-  network_security_group_name = azurerm_network_security_group.main.name
-}
-
 # Allow outbound traffic to the loadbalancer
 resource "azurerm_network_security_rule" "outbound" {
   name                        = "${var.prefix}-loadbalancer-outbound"
@@ -148,20 +104,6 @@ resource "azurerm_network_security_rule" "outbound" {
   protocol                    = "Tcp"
   source_port_range           = "*"
   destination_port_range      = "80"
-  source_address_prefix       = "*"
-  destination_address_prefix  = "*"
-  resource_group_name         = azurerm_resource_group.main.name
-  network_security_group_name = azurerm_network_security_group.main.name
-}
-
-resource "azurerm_network_security_rule" "outbound2" {
-  name                        = "${var.prefix}-loadbalancer-outbound-2"
-  priority                    = 105
-  direction                   = "Outbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "22"
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
   resource_group_name         = azurerm_resource_group.main.name
@@ -215,8 +157,8 @@ resource "azurerm_linux_virtual_machine" "main" {
   location                        = azurerm_resource_group.main.location
   network_interface_ids           = [element(azurerm_network_interface.main.*.id, count.index)]
   size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssw0rd1234!"
+  admin_username                  =  var.vm_username
+  admin_password                  = var.vm_password
   disable_password_authentication = false
 
   os_disk {
@@ -226,7 +168,3 @@ resource "azurerm_linux_virtual_machine" "main" {
 
   source_image_id = var.source_image_id
 }
-
-
-
-
