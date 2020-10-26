@@ -4,6 +4,7 @@
 		"client_secret": "{{env `ARM_CLIENT_SECRET`}}",
 		"subscription_id": "{{env `ARM_SUBSCRIPTION_ID`}}",
 		"resource_group_name": "iass-web-packer-resources",
+		"image_name": "iaas-web-packer-image",
 		"vm_tag": "iaas-web-server",
 		"location": "West US"
 	},
@@ -18,7 +19,7 @@
 			"image_offer": "UbuntuServer",
 			"image_sku": "18.04-LTS",
 			"managed_image_resource_group_name": "{{user `resource_group_name`}}",
-			"managed_image_name": "ubuntuImage",
+			"managed_image_name": "{{user `image_name`}}",
 			"location": "{{user `location`}}",
 			"azure_tags": {
 				"type": "{{user `vm_tag`}}"
@@ -33,7 +34,6 @@
 				"echo 'echo \"Great Bulls of America\"> index.html'>> startserver.sh",
 				"echo 'echo \"the bulls are going live!\"' >> startserver.sh",
 				"echo 'nohup busybox httpd -f -p 80' >> startserver.sh",
-				"cat startserver.sh",
 				"sudo cp startserver.sh /usr/local/sbin/startserver.sh",
 				"sudo chmod +x /usr/local/sbin/startserver.sh",
 				"echo '[Unit]' > startserver.service",
@@ -44,7 +44,6 @@
 				"echo '' >> startserver.service",
 				"echo '[Install]' >> startserver.service",
 				"echo 'WantedBy=multi-user.target' >> startserver.service",
-				"cat startserver.service",
 				"sudo cp startserver.service /etc/systemd/system/startserver.service",
 				"sudo systemctl enable startserver.service"
 			],

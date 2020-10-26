@@ -8,11 +8,6 @@ variable "location" {
     default = "West US"
 }
 
-variable "source_image_id" {
-    description = "The source image id of the packer template"
-    default = "/subscriptions/52c9f91d-c477-43c5-82bf-8c99b0dd262e/resourceGroups/iass-web-packer-resources/providers/Microsoft.Compute/images/ubuntuImage"
-}
-
 variable "vm_count" {
     description = "The number of VMs to create"
     default = 2
@@ -26,4 +21,19 @@ variable "vm_username" {
 variable "vm_password" {
     description = "Password for VMs"
     default = "P@ssw0rd1234!"
+}
+
+variable "environment" {
+    description = "Environment"
+    default = "dev"
+}
+
+variable "image_name" {
+    description = "Name of the image deployed with packer"
+    default = "iaas-web-packer-image"
+}
+
+variable "image_rg_name" {
+    description = "Name of the resource group associated with the packer image"
+    default = "iass-web-packer-resources"
 }

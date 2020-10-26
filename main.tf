@@ -4,6 +4,14 @@ provider "azurerm" {
   features {}
 }
 
+# Define locals
+locals {
+  tags = {
+    environment = var.environment
+    prefix = var.prefix
+  }
+}
+
 # Add a datasource for the current subscription
 data "azurerm_subscription" "current" {
 }
@@ -20,6 +28,7 @@ resource "azurerm_virtual_network" "main" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
+  tags = local.tags
 }
 
 # Create a subnet
@@ -43,6 +52,7 @@ resource "azurerm_lb" "main" {
   name                = "${var.prefix}-load-balancer"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
+  tags = local.tags
 
   frontend_ip_configuration {
     name                 = "${var.prefix}-public-ip-address"
@@ -74,6 +84,7 @@ resource "azurerm_network_security_group" "main" {
   name                = "${var.prefix}-network-security-group"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
+  tags = local.tags
 
   security_rule {
     name                       = "deny-Internet-Inbound"
@@ -122,10 +133,6 @@ resource "azurerm_network_security_group" "main" {
     source_address_prefix      = "Internet"
     destination_address_prefix = "VirtualNetwork"
   }
-
-  tags = {
-    environment = "Production"
-  }
 }
 
 # Create an association between the network security group and the subnet
@@ -140,6 +147,7 @@ resource "azurerm_network_interface" "main" {
   name                = "${var.prefix}-nic-${count.index}"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
+  tags = local.tags
 
   ip_configuration {
     name                          = "${var.prefix}-nic-ip-configuration-${var.vm_count}"
@@ -164,6 +172,13 @@ resource "azurerm_availability_set" "avset" {
   platform_fault_domain_count  = var.vm_count
   platform_update_domain_count = var.vm_count
   managed                      = true
+  tags = local.tags
+}
+
+# Define a datasource for the image deployed with Packer
+data "azurerm_image" "image" {
+  name = var.image_name
+  resource_group_name = var.image_rg_name
 }
 
 # Create a virtual machine
@@ -178,11 +193,13 @@ resource "azurerm_linux_virtual_machine" "main" {
   admin_username                  = var.vm_username
   admin_password                  = var.vm_password
   disable_password_authentication = false
+  tags = local.tags
+  
 
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Standard_LRS"
   }
 
-  source_image_id = var.source_image_id
+  source_image_id = data.azurerm_image.image.id
 }
