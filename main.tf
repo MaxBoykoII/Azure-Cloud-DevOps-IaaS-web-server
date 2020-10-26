@@ -75,39 +75,57 @@ resource "azurerm_network_security_group" "main" {
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
 
+  security_rule {
+    name                       = "deny-Internet-Inbound"
+    priority                   = 1001
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "allow-VNet-Inbound"
+    priority                   = 800
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  security_rule {
+    name                       = "allow-VNet-Outbound"
+    priority                   = 850
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "VirtualNetwork"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
+  security_rule {
+    name                       = "allow-Inbound-port-80"
+    priority                   = 750
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "TCP"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "VirtualNetwork"
+  }
+
   tags = {
     environment = "Production"
   }
-}
-
-# Allow inbound traffic to the loadbalancer
-resource "azurerm_network_security_rule" "inbound" {
-  name                        = "${var.prefix}-loadbalancer-inbound"
-  priority                    = 110
-  direction                   = "Inbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "80"
-  source_address_prefix       = "*"
-  destination_address_prefix  = "*"
-  resource_group_name         = azurerm_resource_group.main.name
-  network_security_group_name = azurerm_network_security_group.main.name
-}
-
-# Allow outbound traffic to the loadbalancer
-resource "azurerm_network_security_rule" "outbound" {
-  name                        = "${var.prefix}-loadbalancer-outbound"
-  priority                    = 100
-  direction                   = "Outbound"
-  access                      = "Allow"
-  protocol                    = "Tcp"
-  source_port_range           = "*"
-  destination_port_range      = "80"
-  source_address_prefix       = "*"
-  destination_address_prefix  = "*"
-  resource_group_name         = azurerm_resource_group.main.name
-  network_security_group_name = azurerm_network_security_group.main.name
 }
 
 # Create an association between the network security group and the subnet
@@ -157,7 +175,7 @@ resource "azurerm_linux_virtual_machine" "main" {
   location                        = azurerm_resource_group.main.location
   network_interface_ids           = [element(azurerm_network_interface.main.*.id, count.index)]
   size                            = "Standard_F2"
-  admin_username                  =  var.vm_username
+  admin_username                  = var.vm_username
   admin_password                  = var.vm_password
   disable_password_authentication = false
 
