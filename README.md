@@ -141,7 +141,7 @@ terraform plan \
 	-var 'vm_password=<your vm password>' \
 	-var 'environment=<your environment tag>' \
 	-var 'image_name=<your image name>' \
-	-var 'image_rg_name=<your image resource group name>\'
+	-var 'image_rg_name=<your image resource group name>' \
 	-out solution.plan
 ```
 
