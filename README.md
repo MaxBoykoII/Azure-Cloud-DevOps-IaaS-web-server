@@ -117,3 +117,31 @@ In addition, the location, the prefix used for naming and tagging resources, the
 
    ```terraform destroy```
 
+### Customization
+
+Both the packer template and the terraform template support customization. To configurate the packer template, for example, you can can overwrite any of the user variables:
+
+```
+packer build \
+	-var 'resource_group_name=<your resource group name>' \
+	-var 'image_name=<your image name>' \
+	-var 'vm_tag=<your vm tag>' \
+	-var 'location=<your location' \
+    server.json
+```
+
+You can similarly customize the terraform template by overwriting the defaults in variables.tf. For instance,
+
+```
+terraform plan \
+	-var 'prefix=<your prefix>' \
+	-var 'location=<your location>' \
+	-var 'vm_count=<your vm count>' \
+	-var 'vm_username=<your vm username>' \
+	-var 'vm_password=<your vm password>' \
+	-var 'environment=<your environment tag>' \
+	-var 'image_name=<your image name>' \
+	-var 'image_rg_name=<your image resource group name>\'
+	-out solution.plan
+```
+
